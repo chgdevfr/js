@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>VisionneuseCarto - 1.1</title>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.12/esri/themes/light/main.css"
+    />
+
+    <style>
+      html,
+      body,
+      #divCarto {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+      }
+      #divLogo {
+        padding: 4px;
+        background-color: no;
+        color: pink;
+        text-align: center;
+        width: 110px;
+		height: 110px;
+      }
+    </style>
+
+    <script src="https://js.arcgis.com/4.12/"></script>
+    <script>
+	var carte, mv;
+
+	require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/widgets/Search", 
+      	"esri/widgets/BasemapToggle"  
+	], function(Map, MapView, Search, BasemapToggle) {
+        carte = new Map({
+          basemap: "osm"
+        });
+
+        vcarte = new MapView({
+          map: carte,
+          container: "divCarto",
+          center: [2.387533, 48.844706],
+          zoom: 18
+        });
+
+        var geosearch = new Search({
+          view: vcarte
+        });
+
+		//Intégration du reverse geocoding
+		vcarte.on("click", function(evt){
+			geosearch.clear();
+			vcarte.popup.clear();
+			if (geosearch.activeSource) {
+			  var geocoder = geosearch.activeSource.locator; // World geocode service
+			  var params = {
+				location: evt.mapPoint 
+			  };
+			  geocoder.locationToAddress(params)
+				.then(function(response) { //Afficher l'adresse trouvée
+				  var adr = response.address;
+				  afficherMsg(adr, evt.mapPoint);
+				}, function(err) { //Afficher pas d'adresse trouvée
+				  afficherMsg("Aucune adresse trouvée.", evt.mapPoint);
+				});
+			}
+		});
+
+		vcarte.ui.add("divLogo", "bottom-right");
+		vcarte.ui.add(geosearch, "top-right");
+
+		//Ajout du widget de fonds de plan
+		var wFondsDePlan = new BasemapToggle({
+			view: vcarte, 
+			nextBasemap: "hybrid" 
+		});
+		vcarte.ui.add(wFondsDePlan, "top-right");
+
+		//Afficher un message pour l'utilisateur
+		function afficherMsg(adr, pt) {
+			vcarte.popup.open({
+				title:  + Math.round(pt.longitude * 100000)/100000 + "," + Math.round(pt.latitude * 100000)/100000,
+				content: adr,
+				location: pt
+			});
+		}
+	  
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="divCarto"></div>
+    <div id="divLogo" class="esri-widget">
+		<!-- @CDG : version avec Esri Inc --> <!--
+		<a href="https://www.esri.com" target="_blank">
+		<img src="https://pbs.twimg.com/profile_images/875418744356352000/mjImnOJe_200x200.jpg" width="100px" height="100px">
+		-->
+		<!-- @CDG : version avec Esri France -->
+		<a href="https://www.esrifrance.fr" target="_blank">
+		<img src="https://pbs.twimg.com/profile_images/769899129153720321/cLVzmwzc_400x400.jpg" width="100px" height="100px">
+		</a>
+	</div>
+  </body>
+</html>
