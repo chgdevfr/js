@@ -33,7 +33,7 @@
 
     <script src="https://js.arcgis.com/4.12/"></script>
     <script>
-	var carte, mv;
+	var carte, mvcarte;
 
 	require([
         "esri/Map",
@@ -45,7 +45,7 @@
           basemap: "osm"
         });
 
-        vcarte = new MapView({
+        mvcarte = new MapView({
           map: carte,
           container: "divCarto",
           center: [2.387533, 48.844706],
@@ -53,13 +53,13 @@
         });
 
         var geosearch = new Search({
-          view: vcarte
+          view: mvcarte
         });
 
 		//Intégration du reverse geocoding
-		vcarte.on("click", function(evt){
+		mvcarte.on("click", function(evt){
 			geosearch.clear();
-			vcarte.popup.clear();
+			mvcarte.popup.clear();
 			if (geosearch.activeSource) {
 			  var geocoder = geosearch.activeSource.locator; // World geocode service
 			  var params = {
@@ -75,19 +75,19 @@
 			}
 		});
 
-		vcarte.ui.add("divLogo", "bottom-right");
-		vcarte.ui.add(geosearch, "top-right");
+		mvcarte.ui.add("divLogo", "bottom-right");
+		mvcarte.ui.add(geosearch, "top-right");
 
 		//Ajout du widget de fonds de plan
 		var wFondsDePlan = new BasemapToggle({
-			view: vcarte, 
+			view: mvcarte, 
 			nextBasemap: "hybrid" 
 		});
-		vcarte.ui.add(wFondsDePlan, "top-right");
+		mvcarte.ui.add(wFondsDePlan, "top-right");
 
 		//Afficher un message pour l'utilisateur
 		function afficherMsg(adr, pt) {
-			vcarte.popup.open({
+			mvcarte.popup.open({
 				title:  + Math.round(pt.longitude * 100000)/100000 + "," + Math.round(pt.latitude * 100000)/100000,
 				content: adr,
 				location: pt
