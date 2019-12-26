@@ -17,6 +17,14 @@
         height: 100%;
         width: 100%;
       }
+      #divLogo {
+        padding: 4px;
+        background-color: no;
+        color: pink;
+        text-align: center;
+        width: 110px;
+		height: 110px;
+      }
     </style>
 
     <link
@@ -50,11 +58,18 @@
           position: "top-left",
           index: 2
         });
+		mvCarte.ui.add("divLogo", "bottom-right");
       });
     </script>
   </head>
 
   <body>
     <div id="divCarte"></div>
+    <div id="divLogo" class="esri-widget">
+		<!-- @CDG : version avec Esri France -->
+		<a href="https://www.esrifrance.fr" target="_blank">
+		<img src="https://pbs.twimg.com/profile_images/769899129153720321/cLVzmwzc_400x400.jpg" width="100px" height="100px">
+		</a>
+	</div>
   </body>
 </html>
