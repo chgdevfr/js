@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>Carte de Noël - Version Next</title>
+
+    <style>
+      html,
+      body,
+      #divCarte {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/next/esri/themes/light/main.css"
+    />
+
+    <script src="https://js.arcgis.com/next/"></script>
+
+    <script>
+      require(["esri/views/MapView", "esri/WebMap", "esri/widgets/Search"], function(MapView, WebMap, Search) {
+        //création de la carte Web de Noël
+        var carteDeNoel = new WebMap({
+          portalItem: {
+            //objet de type éléments du portail, autocast "new PortalItem()"
+            id: "0465557e75674c4fa48765667568a1f8"
+          }
+        });
+
+        //Affichage de la carte
+        var mvCarte = new MapView({
+          map: carteDeNoel,
+          container: "divCarte"
+        });
+        
+        //@CDG : ajout du widget Search
+        var wRecherche = new Search({
+            view: mvCarte
+        });
+        mvCarte.ui.add(wRecherche, {
+          position: "top-left",
+          index: 2
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="divCarte"></div>
+  </body>
+</html>
