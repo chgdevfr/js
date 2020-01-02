@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)https://cdpn.io/chgdevfr/debug/NWPwWjv/NjkYzWNaoVBM -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>PointsAleatoires_AAJS_vNext</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link
+  rel="stylesheet"
+  href="https://js.arcgis.com/next/esri/themes/light/main.css"
+/>
+<script src="https://js.arcgis.com/next/"></script>
+
+<style>
+html,
+body,
+#divCarte {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#divLogo {
+  padding: 4px;
+  background-color: no;
+  color: pink;
+  text-align: center;
+  width: 110px;
+  height: 110px;
+}
+
+#divBoutonRandom {
+  padding: 2px;
+}
+</style>
+</head>
+
+<body translate="no">
+
+<div id="divCarte"></div>
+
+<div id="divLogo" class="esri-widget">
+		<!-- @CDG : version avec Esri Inc --> <!--
+		<a href="https://www.esri.com" target="_blank">
+		<img src="https://pbs.twimg.com/profile_images/875418744356352000/mjImnOJe_200x200.jpg" width="100px" height="100px">
+		-->
+		<!-- @CDG : version avec Esri France -->
+		<a href="https://www.esrifrance.fr" target="_blank">
+		<img src="https://pbs.twimg.com/profile_images/769899129153720321/cLVzmwzc_400x400.jpg" width="100px" height="100px">
+		</a>
+</div>
+
+<div id="divBoutonRandom" class="esri-widget">
+	<input type="button" id="boutonRandom" value="Créer des points aléatoires">
+<!-- @CDG 
+  <p>
+    <a id="boutonRandom" class="btn">Random</a>
+  </p>
+  <p class="text-light">Cliquer sur le bouton pour obtenir quelques points alléatoires !</p>
+-->
+</div>
+
+<script>
+require([
+  "esri/Map",
+  "esri/views/SceneView",
+  "esri/views/MapView",
+  "esri/geometry/Point",
+  "esri/Graphic",
+  "esri/geometry/geometryEngine",
+  "dojo/domReady!"
+], function(Map, SceneView, MapView, Point, Graphic, geometryEngine) {
+  
+  
+  // Generate a random point within the input geometry
+  const _pointAleatoire = geometrie => {
+    let point;
+    while (!point) {
+      
+      // Use the JS Math.random() function to create a random point within
+      // the bounding box of the input geometry.
+      const randomX =
+        Math.random() * (geometrie.extent.xmax - geometrie.extent.xmin) +
+        geometrie.extent.xmin;
+      const randomY =
+        Math.random() * (geometrie.extent.ymax - geometrie.extent.ymin) +
+        geometrie.extent.ymin;
+      const pointTemoraire = new Point({ x: randomX, y: randomY });
+      
+      // check if randomly generated point is within the geometry we want.
+      // if not, the while loop will try again.
+      if (geometryEngine.within(pointTemoraire, geometrie)) {
+        point = pointTemoraire;
+      }
+    }
+    return point;
+  };
+  
+  // "Public" function - handles passing geometry or not
+  const ajouterUnPoint = (geometrie = false) => {
+    if (geometrie) {
+      return _pointAleatoire(geometrie);
+    } else {
+      console.error('Erreur sur la géométrie utilisée !');
+    }
+  };
+ 
+  
+  // standard pointSymbol to use for all graphics in this demo
+  const pointSymbol = {
+    type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+    style: "circle",
+    color: "blue",
+    size: "6px",  // pixels
+    outline: {  // autocasts as new SimpleLineSymbol()
+      color: [ 255, 255, 255 ],
+      width: 1  // points
+    }
+  };
+  const fillSymbol = {
+    type: "simple-fill", // autocasts as new SimpleFillSymbol()
+    color: [227, 139, 79, 0.5],
+    outline: {
+      // autocasts as new SimpleLineSymbol()
+      color: [255, 255, 0],
+      width: 1
+    }
+  };
+
+  const carte = new Map({
+    basemap: "osm"
+  });
+
+  const optionsCarte = {
+    container: "divCarte",
+    map: carte,
+    center: [2.387533, 48.844706], //-110, 35
+    zoom: 18
+  };
+
+  // 2D:
+  const mvCarte = new MapView(optionsCarte);
+
+  // 3D:
+  // const view = new SceneView(viewOptions);
+
+  mvCarte.ui.add("divBoutonRandom", "top-right");
+  
+  let gZone;
+  
+  // Call randomPoint "num" times
+  const ajouterPointsAleatoires = (combien) => {
+    for(let i = 0; i < combien; i++) {
+      const rp = ajouterUnPoint(gZone.geometry);
+      console.log('rp:', rp);
+      const pointGraphic = new Graphic({
+        geometry: rp,
+        symbol: pointSymbol
+      });
+
+      mvCarte.graphics.addMany([pointGraphic]);
+    }
+    
+  }
+  
+  // When the random button is clicked, call "addRandomCoords"
+  document.getElementById("boutonRandom").addEventListener('click', () => {
+    ajouterPointsAleatoires(21);
+  });
+  
+  // TESTING
+  mvCarte.when(() => {
+    // one-time polygon for demonstration purposes.
+    const zoneEn6points = {
+      type: "polygon",
+      rings: [
+        [
+          [2.3867107890470596, 48.845], 
+          [2.387, 48.84543578827997], 
+          [2.3882879279476836, 48.84543578827997], 
+          [2.388, 48.845], 
+          [2.3882879279476836,48.844263720366754], 
+          [2.3867107890470596, 48.844263720366754] 
+        ]
+      ],
+      spatialReference: {
+        wkid: 4326
+      }
+    };
+
+    // Add the geometry and symbol to a new graphic
+    gZone = new Graphic({
+      geometry: zoneEn6points,
+      symbol: fillSymbol
+    });
+
+    mvCarte.graphics.add(gZone);
+    mvCarte.ui.add("divLogo", "bottom-right");
+  });
+});
+</script>
+
+</body>
+</html>
