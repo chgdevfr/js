@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+
+	<!-- @CDG : série par @CHG pour #EF 
+		Auteur : Charles-Henry de Guillebon
+		Société : Esri France 
+		Date : 03/02/2020 -->
+    <title>Série AA4JS 4.14 - Regroupement de points</title>
+
+    <style>
+      html,
+      body,
+      #divCarte {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        background: rgba(200, 200, 200);
+      }
+      #infoDiv {
+        background: #232323;
+        padding: 10px;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.14/esri/themes/dark/main.css"
+    />
+    <script src="https://js.arcgis.com/4.14/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/layers/FeatureLayer",
+        "esri/layers/GeoJSONLayer",
+        "esri/views/MapView",
+        "esri/widgets/Legend",
+        "esri/widgets/Expand",
+        "esri/widgets/Home"
+      ], function(
+        Map,
+        FeatureLayer,
+        GeoJSONLayer,
+        MapView,
+        Legend,
+        Expand,
+        Home
+      ) {
+        //Configuration du clustering
+        const configurationCL = {
+          type: "cluster",
+          clusterRadius: "100px",
+          popupTemplate: {
+            content: "Regroupement de {cluster_count} séismes."
+          }
+        };
+
+        //Couche GeoJSON des séismes
+		const gjlSeismes = new GeoJSONLayer({
+          title: "Séismes du dernier mois",
+          url:
+            "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson",
+          copyright: "USGS Earthquakes",
+          featureReduction: configurationCL,
+          popupTemplate: {
+            title: "Info Séisme",
+            content: "Magnitude {mag} {type} hit {place} on {time}",
+            fieldInfos: [
+              {
+                fieldName: "time",
+                format: {
+                  dateFormat: "short-date-short-time"
+                }
+              }
+            ]
+          },
+          renderer: {
+            type: "simple",
+            field: "mag",
+            symbol: {
+              type: "simple-marker",
+              size: 4,
+              color: "#fc3232",
+              outline: {
+                color: [50, 50, 50]
+              }
+            }
+          }
+        });
+
+        //couhe d'arrière plan
+        const flB = new FeatureLayer({
+          portalItem: {
+            id: "2b93b06dc0dc4e809d3c8db5cb96ba69"
+          },
+          legendEnabled: false,
+          popupEnabled: false,
+          renderer: {
+            type: "simple",
+            symbol: {
+              type: "simple-fill",
+              color: [50, 50, 50, 0.75],
+              outline: {
+                color: "white",
+                width: 0.5
+              }
+            }
+          },
+          spatialReference: {
+            wkid: 5936
+          }
+        });
+
+        const carte = new Map({
+			layers: [flB, gjlSeismes]
+        });
+
+        const mvCarte = new MapView({
+          container: "divCarte",
+          extent: {
+            xmin: 396381,
+            ymin: -2099670,
+            xmax: 3393803,
+            ymax: 148395,
+            spatialReference: {
+              wkid: 5936
+            }
+          },
+          spatialReference: {
+            // WGS_1984_EPSG_Alaska_Polar_Stereographic
+            wkid: 5936
+          },
+          constraints: {
+            minScale: 15469455
+          },
+          map: carte
+        });
+
+        mvCarte.ui.add(
+          new Home({
+            view: mvCarte
+          }),
+          "top-left"
+        );
+
+        const legende = new Legend({
+          view: mvCarte,
+          container: "divLegende"
+        });
+
+        const divinfo = document.getElementById("divInfo");
+        mvCarte.ui.add(
+          new Expand({
+            view: mvCarte,
+            content: divinfo,
+            expandIconClass: "esri-icon-layer-list",
+            expanded: true
+          }),
+          "top-left"
+        );
+
+        const boutonCL = document.getElementById("bClustering");
+
+        //Geston du bouton pour activer ou désactiver le clustering
+        boutonCL.addEventListener("click", function() {
+          let fr = gjlSeismes.featureReduction;
+          gjlSeismes.featureReduction =
+            fr && fr.type === "cluster" ? null : configurationCL;
+          boutonCL.innerText =
+            boutonCL.innerText === "Activer le regroupement..."
+              ? "Désactiver le regroupement..."
+              : "Activer le regroupement...";
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="divCarte"></div>
+    <div id="divInfo" class="esri-widget">
+      <button id="bClustering" class="esri-button">Désactiver le regroupement...</button>
+      <div id="divLegende"></div>
+    </div>
+  </body>
+</html>
+
